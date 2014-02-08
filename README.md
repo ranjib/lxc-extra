@@ -12,7 +12,7 @@ And then execute:
     $ bundle
 
 ## Usage
-Core [LXC ruby bindings]() exposes liblxc api. LXC::Extra provides few additional methods. For example, the `attach` method
+Core [LXC ruby bindings](https://github.com/lxc/ruby-lxc) exposes liblxc api. LXC::Extra provides few additional methods. For example, the `attach` method
 from core lxc allows executing arbitrary ruby code inside a container. Since the `attach` method does so via spawning a child process
 inside the container, getting any data back from the attach block requires IPC. LXC::Extra provides `execute` method that wraps the `attach` method
 and does the IPC magic for you, using `IO.pipe`.
