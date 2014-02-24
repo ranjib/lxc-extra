@@ -8,7 +8,7 @@ module LXC
       r,w = IO.pipe
       ret = attach(wait:true) do
         ENV.clear
-        ENV['PATH']='/usr/bin:/bin:/usr/sbin'
+        ENV['PATH']='/usr/bin:/bin:/usr/sbin:/sbin'
         r.close
         begin
           out = block.call
