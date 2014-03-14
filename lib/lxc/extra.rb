@@ -1,20 +1,26 @@
 require 'lxc'
 require 'lxc/extra/version'
 require 'io/wait'
+require 'timeout'
 
 module LXC
   module Extra
-    def execute(&block)
+    def execute(opts= {}, &block)
+      attach_opts = opts[:attach_options] || {}
+      attach_opts[:wait] ||= true
+      timeout = opts[:timeout] || 3600
       r,w = IO.pipe
-      ret = attach(wait:true) do
+      ret = attach(attach_opts) do
         ENV.clear
         ENV['PATH'] = '/usr/bin:/bin:/usr/sbin:/sbin'
         ENV['TERM'] = 'xterm-256color'
         ENV['SHELL'] = '/bin/bash'
         r.close
         begin
-          out = block.call
-          w.write(Marshal.dump(out))
+          Timeout::timeout(timeout) do
+            out = block.call
+            w.write(Marshal.dump(out))
+          end
         rescue Exception => e
           w.write(Marshal.dump(e))
         end

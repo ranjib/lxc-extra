@@ -29,5 +29,14 @@ describe LXC::Extra do
         ct.execute {raise TestError}
       end.to raise_error(TestError)
     end
+    it 'should respect timeout' do
+      expect do
+        ct.execute(timeout: 10) do
+          11.times do |n|
+            sleep 1
+          end
+        end
+      end.to raise_error Timeout::Error
+    end
   end
 end
