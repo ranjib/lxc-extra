@@ -1,5 +1,8 @@
 require 'lxc'
 require 'lxc/extra/version'
+require 'lxc/extra/lxc_channel'
+require 'lxc/extra/lxc_proxy_client_side'
+require 'lxc/extra/lxc_proxy_server_side'
 require 'io/wait'
 
 module LXC
@@ -18,7 +21,7 @@ module LXC
         rescue Exception => e
           w.write(Marshal.dump(e))
         end
-      end  
+      end
       w.close
       o = nil
       if r.ready?
@@ -27,6 +30,14 @@ module LXC
       r.close
       raise o if o.is_a?(Exception)
       o
+    end
+
+    def open_channel(&block)
+      channel = ::LXC::Extra::LXCChannel.new
+      attach do
+        channel.listen(&block)
+      end
+      channel
     end
   end
   class Container
