@@ -1,15 +1,13 @@
 require 'lxc'
 require 'lxc/extra/version'
-require 'lxc/extra/lxc_channel'
-require 'lxc/extra/lxc_proxy_client_side'
-require 'lxc/extra/lxc_proxy_server_side'
+require 'lxc/extra/channel'
 require 'io/wait'
 
 module LXC
   module Extra
     def execute(&block)
       r,w = IO.pipe
-      ret = attach(wait:true) do
+      ret = attach(wait: true) do
         ENV.clear
         ENV['PATH'] = '/usr/bin:/bin:/usr/sbin:/sbin'
         ENV['TERM'] = 'xterm-256color'
@@ -33,11 +31,11 @@ module LXC
     end
 
     def open_channel(&block)
-      channel = ::LXC::Extra::LXCChannel.new
-      attach do
+      channel = ::LXC::Extra::Channel.new
+      pid = attach do
         channel.listen(&block)
       end
-      channel
+      [channel, pid]
     end
   end
   class Container

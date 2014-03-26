@@ -1,31 +1,33 @@
+require 'lxc/extra/selector'
+
 module LXC
   module Extra
     #
     # Proxy server that listens for connections on the client side and sends
-    # the data to the corresponding LXCProxyServerSide through an LXCChannel.
+    # the data to the corresponding ProxyServerSide through an Channel.
     #
     # == Usage
     #
     #   # Forward 127.0.0.1:80 in the container to google.com from the host
-    #   channel = LXC::Extra::LXCChannel.new
+    #   channel = LXC::Extra::Channel.new
     #   pid = container.attach do
     #     server = TCPServer.new('127.0.0.1', 5559)
-    #     proxy = LXC::Extra::LXCProxyClientSide.new(channel, server)
+    #     proxy = LXC::Extra::ProxyClientSide.new(channel, server)
     #     proxy.start
     #   end
     #
     #   # Here is the proxy server
-    #   proxy = LXC::Extra::LXCProxyServerSide.new(channel) do
+    #   proxy = LXC::Extra::ProxyServerSide.new(channel) do
     #     TCPSocket.new('127.0.0.1', 9995)
     #   end
     #   proxy.start
     #
-    class LXCProxyClientSide
+    class ProxyClientSide
       #
-      # Create a new LXCProxyClientSide.
+      # Create a new ProxyClientSide.
       #
       # == Arguments
-      # channel:: LXCChannel to communicate over
+      # channel:: Channel to communicate over
       # listen_server:: TCPServer to listen to
       #
       def initialize(channel, listen_server)

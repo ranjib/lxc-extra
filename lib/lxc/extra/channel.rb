@@ -1,5 +1,3 @@
-require 'chef/log'
-
 module LXC
   module Extra
     #
@@ -17,7 +15,7 @@ module LXC
     # require 'lxc/extra'
     #
     # container = LXC::Container.new('simple')
-    # channel = container.open_channel do |host, number|
+    # channel, pid = container.open_channel do |host, number|
     #   puts "received #{number} INSIDE!"
     #   if number > 10
     #     host.stop
@@ -33,7 +31,7 @@ module LXC
     #
     # == Extended Usage
     #
-    #   channel = LXCChannel.new
+    #   channel = Channel.new
     #   ct.attach do
     #     channel.listen do |host, number|
     #       "received #{number} INSIDE!"
@@ -49,7 +47,7 @@ module LXC
     #     container.send(number+1)
     #   end
     #
-    class LXCChannel
+    class Channel
       #
       # Create a new LXC channel.
       #
@@ -58,6 +56,12 @@ module LXC
         @from_host, @to_container = IO.pipe
         @host_pid = Process.pid
       end
+
+      attr_reader :from_container
+      attr_reader :to_host
+      attr_reader :from_host
+      attr_reader :to_container
+      attr_reader :host_pid
 
       #
       # Listen for data from the other side.  Loops until stop is received.
@@ -74,7 +78,7 @@ module LXC
       def listen(&block)
         while true
           args = self.next
-          if args.size == 1 && args[0].is_a?(Stop)
+          if args.is_a?(Stop)
             return
           end
           block.call(self, *args)
@@ -97,15 +101,15 @@ module LXC
       # Get the next result.
       #
       # == Arguments
+      # stop_result:: result to return when the channel wants to shut down.  Defaults to LXC::Extra::Channel::Stop.singleton
       #
-      # default_result:: result to return if channel needs to be stopped. Defaults to nil.
-      #
-      def next(default_result = nil)
-        result = Marshal.load(read_fd)
-        if result.is_a?(LXC::Extra::LXCChannel::Stop)
-          default_result
+      # == Returns
+      # Returns nextLXC::Extra::Channel::Stop instance if the channel closes.
+      def next(stop_result = Stop.singleton)
+        if read_fd.closed?
+          stop_result
         else
-          result
+          Marshal.load(read_fd)
         end
       end
 
@@ -113,7 +117,7 @@ module LXC
       # Stop the channel.  Sends a message to the other side to stop it, too.
       #
       def stop
-        send_message(Stop.new)
+        send_message(Stop.singleton)
         @from_container.close
         @to_host.close
         @from_host.close
@@ -155,9 +159,10 @@ module LXC
         end
       end
 
-      private
-
       class Stop
+        def self.singleton
+          @@singleton ||= Stop.new
+        end
       end
     end
   end
